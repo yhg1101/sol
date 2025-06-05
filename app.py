@@ -15,19 +15,21 @@ def get_latest_solquiz():
     if not latest_box:
         return "❌ 최신 기사를 찾을 수 없습니다."
 
+    title_tag = latest_box.select_one("h4.title")
     desc_tag = latest_box.select_one("div.desc")
     link_tag = latest_box.select_one("a.link")
 
-    if not desc_tag or not link_tag:
+    if not title_tag or not desc_tag or not link_tag:
         return "❌ 기사 정보가 충분하지 않습니다."
 
+    title = title_tag.get_text(strip=True)
     snippet = desc_tag.get_text(strip=True)
     answers = re.findall(r"정답은\s*'([^']+)'", snippet)
 
     if not answers:
         return "❌ 정답을 찾을 수 없습니다."
 
-    return f"🎯 정답: {', '.join(answers[:3])}"
+    return f"📰 제목: {title}\n🎯 정답: {', '.join(answers[:3])}"
 
 @app.route("/latest")
 def latest():
