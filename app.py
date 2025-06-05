@@ -36,6 +36,3 @@ def get_latest_solquiz():
 @app.route("/latest")
 def latest():
     return jsonify(get_latest_solquiz())
-
-if __name__ == "__main__":
-    app.run()
