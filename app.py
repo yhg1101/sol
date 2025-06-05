@@ -1,4 +1,3 @@
-# app.py
 from flask import Flask, jsonify
 import requests
 from bs4 import BeautifulSoup
@@ -13,22 +12,24 @@ def get_latest_solquiz():
     soup = BeautifulSoup(res.text, "html.parser")
 
     latest_box = soup.select_one("div.text_box")
-    link_tag = latest_box.select_one("a.link") if latest_box else None
-    if not link_tag or not link_tag.get('href'):
-        return {"error": "기사 링크를 찾지 못함"}
+    if not latest_box:
+        return {"error": "최신 기사를 찾을 수 없습니다."}
+
+    title_tag = latest_box.select_one("h4.title")
+    desc_tag = latest_box.select_one("div.desc")
+    link_tag = latest_box.select_one("a.link")
+
+    if not title_tag or not desc_tag or not link_tag:
+        return {"error": "기사 정보가 충분하지 않습니다."}
 
     article_url = "https://www.bntnews.co.kr" + link_tag['href']
-    article_res = requests.get(article_url, headers=headers)
-    article_soup = BeautifulSoup(article_res.text, "html.parser")
-    content_tag = article_soup.select_one(".article-body")
-    if not content_tag:
-        return {"error": "본문을 찾지 못함"}
+    snippet = desc_tag.get_text(strip=True)
 
-    full_text = content_tag.get_text(separator=' ', strip=True)
-    answers = re.findall(r"정답은\\s*'([^']+)'", full_text)
+    # 본문 대신 snippet에서 정답 추출
+    answers = re.findall(r"정답은\s*'([^']+)'", snippet)
 
     return {
-        "title": latest_box.select_one("h4.title").get_text(strip=True),
+        "title": title_tag.get_text(strip=True),
         "url": article_url,
         "answers": answers[:3]
     }
